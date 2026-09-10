@@ -111,8 +111,9 @@ jobs:
             --ks-pass pass:"$ANDROID_KEYSTORE_PASSWORD" --key-pass pass:"$ANDROID_KEY_PASSWORD" \
             --out "$OUT" "$APK_PATH"
           $BT/apksigner verify --verbose "$OUT" | tee /tmp/apksigner.log
-          grep -q "Verifies" /tmp/apksigner.log && grep -q "v2: true" /tmp/apksigner.log
-          # GATE T-S01-02: assinatura V1+V2 verificada
+          # GATE T-S01-02: v2 obrigatoria (minSdk>=24 dispensa v1); v1 fica informativo
+          grep -q "Verified using v2 scheme (APK Signature Scheme v2): true" /tmp/apksigner.log || { echo "GATE: assinatura v2 NAO verificada"; exit 1; }
+          grep -q "Number of signers: 1" /tmp/apksigner.log || { echo "GATE: numero de signers != 1"; exit 1; }
           echo "APK_SIGNED=$OUT" >> $GITHUB_ENV
 
       - name: Verification tests (gates estáticos)
